@@ -11,4 +11,13 @@ script/plugin install git://github.com/msales/partial_dependencies
 
 into your Rails application
 
+Usage
+-----
+
+This plugin is basically just a rake task. If you run
+
+rake partial_dependencies:generate_picture
+
+it will generate a file called partial_dependencies.png (provided that Graphviz is installed) in your RAILS_ROOT.
+
 [1] http://www.graphviz.org/
