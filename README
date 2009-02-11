@@ -1,0 +1,5 @@
+Creates a dependency graph of all your views and partials. It parses all your views in app/views and extracts all "render :partial" calls. This information is used to generate a graph that shows which view uses which partial (which itself may use other partials).
+
+Once the data has been extracted it is used to generate a graphical representation using GraphViz [1]. It is saved as RAILS_ROOT/partial_dependencies.png.
+
+[1] http://www.graphviz.org/
