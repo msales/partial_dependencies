@@ -2,7 +2,7 @@ require 'stringio'
 
 class PartialDependencies
   
-  def initialize(base_path = "./app/views/")
+  def initialize(base_path = File.expand_path(File.join(RAILS_ROOT,"app", "views")))
     @base_path = base_path
   end
 
@@ -11,8 +11,8 @@ class PartialDependencies
     @views = nil
   end
   
-  def dot(fn)
-    IO.popen("dot -Tpng -o #{fn}", "w") do |pipe|
+  def dot(type = "png", fn = "partial_dependencies")
+    IO.popen("dot -T#{type} -o #{fn}.#{type}", "w") do |pipe|
       pipe.puts dot_input
     end
   end
@@ -78,7 +78,12 @@ end
 namespace :partial_dependencies do
   desc "Generate a graphical (PNG) representation of the partial dependencies"
   task :generate_picture do
-    pd = PartialDependencies.new(File.expand_path(File.join(RAILS_ROOT,"app", "views")))
-    pd.dot(File.join(RAILS_ROOT, "partial_dependencies.png"))
+    pd = PartialDependencies.new
+    pd.dot
+  end
+  desc "Generate a SVG representation (same as partial_dependencies:generate_picture apart from output format)"
+  task :generate_svg do
+    pd = PartialDependencies.new
+    pd.dot("svg")
   end
 end
