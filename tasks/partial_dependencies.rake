@@ -12,7 +12,8 @@ class PartialDependencies
   end
   
   def dot(type = "png", view_set = "used", fn = "partial_dependencies")
-    IO.popen("dot -T#{type} -o #{fn}-#{view_set}.#{type}", "w") do |pipe|
+    prog = view_set == "unused" ? "neato" : "dot"
+    IO.popen("#{prog} -T#{type} -o #{fn}-#{view_set}.#{type}", "w") do |pipe|
       pipe.puts dot_input(view_set)
     end
   end
