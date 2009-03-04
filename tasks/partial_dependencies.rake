@@ -11,26 +11,32 @@ class PartialDependencies
     @views = nil
   end
   
-  def dot(type = "png", fn = "partial_dependencies")
-    IO.popen("dot -T#{type} -o #{fn}.#{type}", "w") do |pipe|
-      pipe.puts dot_input
+  def dot(type = "png", view_set = "used", fn = "partial_dependencies")
+    IO.popen("dot -T#{type} -o #{fn}-#{view_set}.#{type}", "w") do |pipe|
+      pipe.puts dot_input(view_set)
     end
   end
 
   private
 
-  def dot_input
+  def dot_input(view_set)
+    possible_view_sets = ["used", "unused", "all"]
+    unless possible_view_sets.include?(view_set)
+      raise "Wrong view_set. Only #{possible_view_sets.inspect} possible. Was #{view_set.inspect}"
+    end
     str = StringIO.new
     parse_files
     str.puts "digraph partial_dependencies {"
     name_to_node = {}
-    @used_views.each_with_index do |view, index|
+    instance_variable_get("@#{view_set}_views").each_with_index do |view, index|
       str.puts "Node#{index} [label=\"#{view}\"]"
       name_to_node[view] = "Node#{index}"
     end
-    @edges.each do |view, partials|
-      partials.each do |partial|
-        str.puts "#{name_to_node[view]}->#{name_to_node[partial]}"
+    if (["used", "all"].include?(view_set))
+      @edges.each do |view, partials|
+        partials.each do |partial|
+          str.puts "#{name_to_node[view]}->#{name_to_node[partial]}"
+        end
       end
     end
     str.puts "}"
@@ -42,7 +48,9 @@ class PartialDependencies
   def parse_files
     @edges = Hash.new {|hash,key| hash[key] = []}
     @used_views = {}
+    @all_views = []
     views.each do |view|
+      @all_views << pwfe(view)
       File.open("#{view[:path]}") do |contents|
         contents.each do |line|
           if line =~ /=\s*render.+:partial\s=>\s["'](.*)["']/
@@ -60,6 +68,7 @@ class PartialDependencies
       end
     end
     @used_views = @used_views.keys
+    @unused_views = @all_views - @used_views
   end
   
   def pwfe(view)
@@ -77,13 +86,8 @@ end
 
 namespace :partial_dependencies do
   desc "Generate a graphical (PNG) representation of the partial dependencies"
-  task :generate_picture do
+  task :generate_picture, :file_type, :view_set do |t, args|
     pd = PartialDependencies.new
-    pd.dot
-  end
-  desc "Generate a SVG representation (same as partial_dependencies:generate_picture apart from output format)"
-  task :generate_svg do
-    pd = PartialDependencies.new
-    pd.dot("svg")
+    pd.dot(args.file_type || "png", args.view_set || "used")
   end
 end
