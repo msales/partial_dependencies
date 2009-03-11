@@ -45,7 +45,7 @@ class PartialDependencies
     views.each do |view|
       File.open("#{view[:path]}") do |contents|
         contents.each do |line|
-          if line =~ /=\s*render.+:partial\s=>\s["'](.*)["']/
+          if line =~ /=\s*render\s*\(?:partial\s*=>\s*["'](.*?)["']/
             partial_name = $1
             if partial_name.index("/")
               partial_name = partial_name.gsub(/\/([^\/]*)$/, "/_\\1")
